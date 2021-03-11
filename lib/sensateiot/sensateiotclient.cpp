@@ -16,8 +16,8 @@
 #define DBG_STREAM(...)
 #endif
 
-//static String url = "https://api.sensateiot.com/network/v1/gateway/messages";
-static String url  = "https://enbst3j0j8mqu2k.m.pipedream.net/network/v1/gateway/messages";
+static String url = "https://api.sensateiot.com/network/v1/gateway/messages";
+//static String url  = "https://enbst3j0j8mqu2k.m.pipedream.net/network/v1/gateway/messages";
 //static String host  = "enbst3j0j8mqu2k.m.pipedream.net";
 //static String url  = "https://api.sensateiot.com/network/v1/gateway/messages";
 //static String host  = "api.sensateiot.com";

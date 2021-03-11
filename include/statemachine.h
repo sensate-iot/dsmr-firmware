@@ -3,14 +3,14 @@
 namespace smartenergy
 {
 	enum DsmrSignal {
-		CLOCK_PUBLISH,
+		CLOCK,
 		IDLE,
 		NUM_SIGNALS
 	};
 
 	enum DsmrState {
 		S_IDLE,
-		S_PUBLISH,
+		S_MEASURE,
 		NUM_STATES
 	};
 
