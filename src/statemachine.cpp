@@ -1,13 +1,18 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
+
 #include <fsm.h>
 #include <sensateiotclient.h>
 
 #include "config.h"
 #include "led.h"
+#include "bme280.h"
 #include "dsmr.h"
 #include "statemachine.h"
 
 static String latestFrame;
+static String EnvironmentSensorTag("/Environment\r\n");
+static StaticJsonDocument<256> json;
 static fsm::FSM<smartenergy::DsmrSignal,
 				smartenergy::DsmrState,
 				smartenergy::DsmrSignal::NUM_SIGNALS,
@@ -15,7 +20,9 @@ static fsm::FSM<smartenergy::DsmrSignal,
 
 namespace smartenergy
 {
-	static void state_idle()
+	static void readEnvironmentSensor();
+
+	static void stateIdle()
 	{
 		if(readInterface()) {
 			flashLed(RgbColor::BLUE);
@@ -33,7 +40,7 @@ namespace smartenergy
 #endif
 	}
 
-	static void sendMessage()
+	static void sendMessage(const String& data)
 	{
 		sensateiot::Message message;
 		auto conf = smartenergy::getConfiguration();
@@ -42,18 +49,41 @@ namespace smartenergy
 		message.sensorId = conf.sensor_id;
 		message.latitude = conf.latitude;
 		message.longitude = conf.longitude;
-		message.data = latestFrame;
+		message.data = data;
 
 		sensateiot::httpClient.send(message);
 	}
 
-	static void state_publish()
+	static void handleBmeMeasurement()
 	{
+		String envData;
+		String tagged(EnvironmentSensorTag);
+
+		readEnvironmentSensor();
+		serializeJson(json, envData);
+		tagged.concat(envData);
+		sendMessage(tagged);
+	}
+
+	static void stateMeasure()
+	{
+		handleBmeMeasurement();
+
 		if(latestFrame.length() > 0) {
-			smartenergy::flashLed(RgbColor::GREEN);
-			sendMessage();
+			sendMessage(latestFrame);
 			latestFrame.clear();
 		}
+
+		smartenergy::flashLed(RgbColor::GREEN);
+	}
+
+	static void readEnvironmentSensor()
+	{
+		auto result = smartenergy::readBme280();
+
+		json["rh"] = result.rh;
+		json["p"]  = result.pressure;
+		json["t"] = result.temperature;
 	}
 
 	void readSignal()
@@ -63,7 +93,7 @@ namespace smartenergy
 
 	void timerSignal()
 	{
-		dsmrFsm.setTimeout(millis(), DsmrSignal::CLOCK_PUBLISH);
+		dsmrFsm.setTimeout(millis(), DsmrSignal::CLOCK);
 	}
 
 	void loop()
@@ -74,12 +104,12 @@ namespace smartenergy
 	void initFsm()
 	{
 		// Idle state
-		dsmrFsm.addTransition(DsmrSignal::IDLE, DsmrState::S_IDLE, DsmrState::S_IDLE, state_idle);
-		dsmrFsm.addTransition(DsmrSignal::CLOCK_PUBLISH, DsmrState::S_IDLE, DsmrState::S_PUBLISH, state_publish);
+		dsmrFsm.addTransition(DsmrSignal::IDLE, DsmrState::S_IDLE, DsmrState::S_IDLE, stateIdle);
+		dsmrFsm.addTransition(DsmrSignal::CLOCK, DsmrState::S_IDLE, DsmrState::S_MEASURE, stateMeasure);
 
 		// Publish state
-		dsmrFsm.addTransition(DsmrSignal::IDLE, DsmrState::S_PUBLISH, DsmrState::S_IDLE, state_idle);
-		dsmrFsm.addTransition(DsmrSignal::CLOCK_PUBLISH, DsmrState::S_PUBLISH, DsmrState::S_PUBLISH, state_publish);
+		dsmrFsm.addTransition(DsmrSignal::IDLE, DsmrState::S_MEASURE, DsmrState::S_IDLE, stateIdle);
+		dsmrFsm.addTransition(DsmrSignal::CLOCK, DsmrState::S_MEASURE, DsmrState::S_MEASURE, stateMeasure);
 
 #ifdef DEBUG
 		DsmrStream = stringstream::StringStream(testData);
