@@ -64,7 +64,7 @@ exceeding 100 columns significantly increases readability and does not hide
 information. Descendants are always substantially shorter than the parent and
 are placed substantially to the right. The same applies to function headers
 with a long argument list. However, never break user-visible strings such as
-printk messages, because that breaks the ability to grep for them.
+printf messages, because that breaks the ability to grep for them.
 
 ### Braces and spaces
 
