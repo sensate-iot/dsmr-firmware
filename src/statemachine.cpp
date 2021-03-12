@@ -11,6 +11,7 @@
 #include "statemachine.h"
 
 static String latestFrame;
+static String EnvironmentSensorTag("/Environment\r\n");
 static StaticJsonDocument<256> json;
 static fsm::FSM<smartenergy::DsmrSignal,
 				smartenergy::DsmrState,
@@ -53,19 +54,27 @@ namespace smartenergy
 		sensateiot::httpClient.send(message);
 	}
 
-	static void stateMeasure()
+	static void handleBmeMeasurement()
 	{
 		String envData;
+		String tagged(EnvironmentSensorTag);
 
 		readEnvironmentSensor();
 		serializeJson(json, envData);
-		sendMessage(envData);
+		tagged.concat(envData);
+		sendMessage(tagged);
+	}
+
+	static void stateMeasure()
+	{
+		handleBmeMeasurement();
 
 		if(latestFrame.length() > 0) {
-			smartenergy::flashLed(RgbColor::GREEN);
 			sendMessage(latestFrame);
 			latestFrame.clear();
 		}
+
+		smartenergy::flashLed(RgbColor::GREEN);
 	}
 
 	static void readEnvironmentSensor()
