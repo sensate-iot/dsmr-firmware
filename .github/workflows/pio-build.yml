@@ -14,10 +14,8 @@ on:
       - develop
 
 jobs:
-  build:
-
+  build-validation:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Cache pip
