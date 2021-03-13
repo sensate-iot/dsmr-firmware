@@ -11,6 +11,7 @@
 
 #include <sensateiotclient.h>
 
+#include "version.h"
 #include "statemachine.h"
 #include "config.h"
 #include "configserver.h"
@@ -116,11 +117,11 @@ void setup()
 
 	auto conf = smartenergy::getConfiguration();
 
+	Serial.println();
+	Serial.printf("Starting Sensate IoT DSMR Firmware %s\n", VERSION);
 	Serial.println("Loaded configuration:");
 	Serial.printf("Baud rate: %i\n", conf.p1_baudrate);
 	Serial.printf("Sensor ID: %s\n", conf.sensor_id);
-	Serial.printf("Sensor secret: %s\n", conf.sensor_secret);
-	Serial.printf("API key: %s\n", conf.api_key);
 
 	smartenergy::startConfigServer();
 	delay(1000);
