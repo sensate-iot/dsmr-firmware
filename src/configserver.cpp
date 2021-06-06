@@ -115,6 +115,7 @@ namespace smartenergy
 		}
 
 		smartLedColor(RgbColor::BLUE, RgbState::OFF);
+		WiFi.hostname("smart-meter");
 		indicateSuccess();
 	}
 }

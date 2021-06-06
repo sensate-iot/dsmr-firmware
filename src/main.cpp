@@ -27,8 +27,6 @@
 
 static volatile uint32_t ticks;
 
-static WiFiManager wifiManager;
-
 static ICACHE_RAM_ATTR void handleInterrupt();
 
 static void fatal()
