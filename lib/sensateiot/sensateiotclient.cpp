@@ -16,7 +16,7 @@
 #define DBG_STREAM(...)
 #endif
 
-static String url = "https://api.sensateiot.com/network/v1/gateway/messages";
+static String url = "https://api.sensateiot.com/gateway/v1/messages";
 static X509List certChain(rootCa);
 
 namespace sensateiot
